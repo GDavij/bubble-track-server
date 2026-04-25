@@ -6,17 +6,21 @@
   "containerUser": "vibecoder",
   "remoteUser": "vibecoder",
   "containerEnv": {
-    "GOPATH": "/go"
+    "GOPATH": "/home/vibecoder/go"
   },
-  "onCreateCommand": "sudo chown -R $(whoami) /go",
   "customizations": {
     "vscode": {
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
         "go.toolsManagement.checkForUpdates": "off",
         "go.useLanguageServer": true,
-        "go.gopath": "/go",
-        "go.goroot": "/usr/local/go"
+        "go.gopath": "/home/vibecoder/go",
+        "go.goroot": "/usr/local/go",
+        "go.alternateTools": {
+          "gopls": "/usr/local/bin/gopls",
+          "dlv": "/usr/local/bin/dlv",
+          "staticcheck": "/usr/local/bin/staticcheck"
+        }
       },
       "extensions": [
         "golang.go",

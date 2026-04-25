@@ -14,11 +14,6 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-RUN go install github.com/air-verse/air@latest && \
-    go install golang.org/x/tools/gopls@latest && \
-    go install github.com/go-delve/delve/cmd/dlv@latest && \
-    go install honnef.co/go/tools/cmd/staticcheck@latest
-
 RUN if id "vibecoder" >/dev/null 2>&1; then \
       echo "vibecoder user already exists, skipping"; \
     else \
@@ -26,8 +21,16 @@ RUN if id "vibecoder" >/dev/null 2>&1; then \
       echo "vibecoder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers; \
     fi
 
+RUN go install github.com/air-verse/air@latest && \
+    go install golang.org/x/tools/gopls@latest && \
+    go install github.com/go-delve/delve/cmd/dlv@latest && \
+    go install honnef.co/go/tools/cmd/staticcheck@latest && \
+    cp /go/bin/air /go/bin/gopls /go/bin/dlv /go/bin/staticcheck /usr/local/bin/
+
 RUN chown -R vibecoder:vibecoder /go
 
 USER vibecoder
 
+ENV GOPATH=/home/vibecoder/go
+ENV PATH=/home/vibecoder/go/bin:/usr/local/go/bin:/usr/local/bin:$PATH
 ENV SHELL=/bin/bash
