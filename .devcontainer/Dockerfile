@@ -32,5 +32,5 @@ RUN chown -R vibecoder:vibecoder /go
 USER vibecoder
 
 ENV GOPATH=/home/vibecoder/go
-ENV PATH=/home/vibecoder/go/bin:/usr/local/go/bin:/usr/local/bin:$PATH
+ENV PATH=/home/vibecoder/.local/bin:/home/vibecoder/go/bin:/usr/local/go/bin:/usr/local/bin:$PATH
 ENV SHELL=/bin/bash
