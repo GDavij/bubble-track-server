@@ -12,7 +12,7 @@
     "vscode": {
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
-        "go.toolsManagement.checkForUpdates": "local",
+        "go.toolsManagement.checkForUpdates": "off",
         "go.useLanguageServer": true,
         "go.gopath": "/home/vibecoder/go",
         "go.goroot": "/usr/local/go"

@@ -21,10 +21,16 @@ RUN if id "vibecoder" >/dev/null 2>&1; then \
       echo "vibecoder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers; \
     fi
 
-RUN go install github.com/air-verse/air@latest
+ENV GOPATH=/home/vibecoder/go
+ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
+
+RUN mkdir -p /home/vibecoder/go && \
+    chown -R vibecoder:vibecoder /home/vibecoder/go
 
 USER vibecoder
 
-ENV GOPATH=/home/vibecoder/go
-ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
+RUN go install github.com/air-verse/air@latest && \
+    go install golang.org/x/tools/gopls@latest && \
+    go install github.com/go-delve/delve/cmd/dlv@latest
+
 ENV SHELL=/bin/bash
