@@ -17,19 +17,14 @@ RUN apt-get update && apt-get install -y \
 RUN if id "vibecoder" >/dev/null 2>&1; then \
       echo "vibecoder user already exists, skipping"; \
     else \
-      useradd -m -s /bin/bash vibecoder && \
-      usermod -aG sudo vibecoder && \
+      useradd -m -s /bin/bash -u 1000 -G sudo vibecoder && \
       echo "vibecoder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers; \
     fi
 
-RUN go install github.com/air-verse/air@latest && \
-    mv /go/bin/air /usr/local/bin/air
+RUN go install github.com/air-verse/air@latest
 
 USER vibecoder
-WORKDIR /home/vibecoder/app
 
+ENV GOPATH=/home/vibecoder/go
+ENV PATH=$GOPATH/bin:/usr/local/go/bin:$PATH
 ENV SHELL=/bin/bash
-
-EXPOSE 8080
-
-CMD ["air", "-c", ".air.toml"]

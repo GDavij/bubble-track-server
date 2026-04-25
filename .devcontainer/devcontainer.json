@@ -3,14 +3,19 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
+  "containerUser": "vibecoder",
   "remoteUser": "vibecoder",
+  "containerEnv": {
+    "GOPATH": "/home/vibecoder/go"
+  },
   "customizations": {
     "vscode": {
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
         "go.toolsManagement.checkForUpdates": "local",
         "go.useLanguageServer": true,
-        "go.gopath": "/home/vibecoder/go"
+        "go.gopath": "/home/vibecoder/go",
+        "go.goroot": "/usr/local/go"
       },
       "extensions": [
         "golang.go",
@@ -20,5 +25,5 @@
       ]
     }
   },
-  "postCreateCommand": "go mod download"
+  "postCreateCommand": "test -f go.mod && go mod download || true"
 }
