@@ -18,8 +18,11 @@ RUN if id "vibecoder" >/dev/null 2>&1; then \
       echo "vibecoder user already exists, skipping"; \
     else \
       useradd -m -s /bin/bash -u 1000 -G sudo vibecoder && \
-      echo "vibecoder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers; \
+      echo "vibecoder ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/vibecoder && \
+      chmod 0440 /etc/sudoers.d/vibecoder; \
     fi
+
+RUN mkdir -p /workspaces && chown vibecoder:vibecoder /workspaces
 
 RUN go install github.com/air-verse/air@latest && \
     go install golang.org/x/tools/gopls@latest && \
@@ -27,7 +30,9 @@ RUN go install github.com/air-verse/air@latest && \
     go install honnef.co/go/tools/cmd/staticcheck@latest && \
     cp /go/bin/air /go/bin/gopls /go/bin/dlv /go/bin/staticcheck /usr/local/bin/
 
-RUN chown -R vibecoder:vibecoder /go
+RUN chown -R vibecoder:vibecoder /go && \
+    mkdir -p /home/vibecoder/go && \
+    chown -R vibecoder:vibecoder /home/vibecoder
 
 USER vibecoder
 

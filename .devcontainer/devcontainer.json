@@ -8,7 +8,7 @@
   "containerEnv": {
     "GOPATH": "/home/vibecoder/go"
   },
-  "onCreateCommand": "sudo chown -R $(whoami) /workspaces /go && (command -v opencode >/dev/null 2>&1 || curl -fsSL https://opencode.ai/install | bash)",
+  "postCreateCommand": "sudo chown -R vibecoder /go /home/vibecoder /workspaces /workspace 2>/dev/null; (command -v opencode >/dev/null 2>&1 || curl -fsSL https://opencode.ai/install | bash); test -f go.mod && go mod download || true",
   "customizations": {
     "vscode": {
       "settings": {
@@ -30,6 +30,5 @@
         "dbcode.dbcode"
       ]
     }
-  },
-  "postCreateCommand": "test -f go.mod && go mod download || true"
+  }
 }
