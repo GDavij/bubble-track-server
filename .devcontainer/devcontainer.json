@@ -8,6 +8,7 @@
   "containerEnv": {
     "GOPATH": "/go"
   },
+  "onCreateCommand": "sudo chown -R $(whoami) /go",
   "customizations": {
     "vscode": {
       "settings": {
@@ -15,12 +16,7 @@
         "go.toolsManagement.checkForUpdates": "off",
         "go.useLanguageServer": true,
         "go.gopath": "/go",
-        "go.goroot": "/usr/local/go",
-        "go.alternateTools": {
-          "gopls": "/go/bin/gopls",
-          "dlv": "/go/bin/dlv",
-          "staticcheck": "/go/bin/staticcheck"
-        }
+        "go.goroot": "/usr/local/go"
       },
       "extensions": [
         "golang.go",
