@@ -16,16 +16,17 @@ import (
 	"github.com/bubbletrack/server/internal/config"
 	"github.com/bubbletrack/server/internal/domain"
 	"github.com/bubbletrack/server/internal/infrastructure/adk"
+	"github.com/bubbletrack/server/internal/infrastructure/lmstudio"
 	"github.com/bubbletrack/server/internal/infrastructure/ollama"
 	"github.com/bubbletrack/server/internal/infrastructure/pubsub"
 	"github.com/bubbletrack/server/internal/infrastructure/queue"
 	"github.com/bubbletrack/server/internal/infrastructure/repository"
 	"github.com/bubbletrack/server/internal/logger"
 	"github.com/bubbletrack/server/internal/websocket"
-	pb "github.com/qdrant/go-client/qdrant"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	pb "github.com/qdrant/go-client/qdrant"
 )
 
 func main() {
@@ -86,10 +87,18 @@ func main() {
 	log.Info("qdrant connected")
 
 	useOllama := os.Getenv("USE_OLLAMA") == "true"
+	useLMStudio := os.Getenv("USE_LM_STUDIO") == "true"
 
 	var embedder domain.Embedder
 	var btAgent interface {
 		ProcessInteraction(ctx context.Context, userID, text string) (*domain.AnalysisResult, error)
+	}
+
+	// Initialize embedder (priority: LM Studio > Ollama > fallback)
+	if useLMStudio {
+		lmClient := lmstudio.NewClient(cfg.LMStudio.EmbeddingURL(), cfg.LMStudio.EmbeddingModel)
+		embedder = lmClient
+		log.Info("lm studio embedder initialized", "model", cfg.LMStudio.EmbeddingModel)
 	}
 
 	if useOllama {
@@ -240,6 +249,12 @@ func main() {
 		log.Info("ADK agent initialized with Gemini", "model", cfg.GenAI.Model)
 	}
 
+	// Fallback pseudo-embedder if no real embedding service is configured
+	if embedder == nil {
+		embedder = &fallbackEmbedder{}
+		log.Warn("no embedding service configured, using hash-based fallback (memories search will be degraded)")
+	}
+
 	if btAgent == nil {
 		log.Error("no AI client available (need either GEMINI_API_KEY or USE_OLLAMA=true)")
 		os.Exit(1)
@@ -351,4 +366,18 @@ func connectQdrant(cfg config.Config) (*pb.Client, error) {
 		APIKey: cfg.Qdrant.APIKey,
 		UseTLS: cfg.Qdrant.UseTLS,
 	})
+}
+
+type fallbackEmbedder struct{}
+
+func (f *fallbackEmbedder) Embed(_ context.Context, text string) ([]float32, error) {
+	emb := make([]float32, 768)
+	h := 0
+	for _, ch := range text {
+		h = h*31 + int(ch)
+	}
+	for i := range emb {
+		emb[i] = float32((h+i)%1000) / 1000.0
+	}
+	return emb, nil
 }

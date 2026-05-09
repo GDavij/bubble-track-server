@@ -1,0 +1,108 @@
+# Bubble Track Server - Docker Compose for Backing Services
+#
+# This compose file runs the backend dependencies needed by Bubble Track Server:
+#   - PostgreSQL 16 (Relational database)
+#   - Qdrant (Vector database for embeddings)
+#   - Redis Stack (Job queue + pub/sub via Asynq)
+#
+# USAGE:
+#   1. Start services:    docker compose up -d
+#   2. Check status:      docker compose ps
+#   3. View logs:         docker compose logs -f
+#   4. Stop services:     docker compose down
+#      (keep data):       docker compose down -v  (WARNING: deletes volumes!)
+#
+# CONNECTING FROM YOUR HOST (server runs locally, not in Docker):
+# --------------------------------------------------------------------
+# Update your .env file to use localhost instead of the internal hostnames:
+#
+#   # PostgreSQL (matches POSTGRES_* below)
+#   POSTGRES_HOST=localhost
+#   POSTGRES_PORT=5432
+#   POSTGRES_USER=bubble_tracker_admin
+#   POSTGRES_PASSWORD=change-me-in-production
+#   POSTGRES_DB=bubble_tracker
+#
+#   # Qdrant (gRPC port 6334)
+#   QDRANT_HOST=localhost
+#   QDRANT_PORT=6334
+#   QDRANT_COLLECTION=bubble_tracker
+#
+#   # Redis (DB 1 for job queue)
+#   REDIS_HOST=localhost
+#   REDIS_PORT=6379
+#   REDIS_DB=1
+#
+# Web UIs (when services are running):
+#   - RedisInsight: http://localhost:8001
+#   - Qdrant Dashboard: http://localhost:6333/dashboard
+#
+
+version: "3.8"
+
+networks:
+  bubble-track:
+    driver: bridge
+
+volumes:
+  pgdata:
+  qdrant_storage:
+  redis_data:
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bubble-track-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: bubble_tracker_admin
+      POSTGRES_PASSWORD: change-me-in-production
+      POSTGRES_DB: bubble_tracker
+    networks:
+      - bubble-track
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bubble_tracker_admin -d bubble_tracker"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: bubble-track-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"   # HTTP
+      - "6334:6334"   # gRPC
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    networks:
+      - bubble-track
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  redis:
+    image: redis/redis-stack:latest
+    container_name: bubble-track-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"   # Redis
+      - "8001:8001"   # RedisInsight UI
+    volumes:
+      - redis_data:/data
+    networks:
+      - bubble-track
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

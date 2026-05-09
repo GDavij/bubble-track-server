@@ -15,6 +15,7 @@ type Config struct {
 	Redis    RedisConfig
 	GenAI    GenAIConfig
 	Ollama   OllamaConfig
+	LMStudio LMStudioConfig
 }
 
 type ServerConfig struct {
@@ -43,11 +44,11 @@ func (c PostgresConfig) DSN() string {
 }
 
 type QdrantConfig struct {
-	Host        string
-	Port        int
+	Host       string
+	Port       int
 	Collection string
-	APIKey      string
-	UseTLS      bool
+	APIKey     string
+	UseTLS     bool
 }
 
 func (c QdrantConfig) Address() string {
@@ -82,6 +83,16 @@ func (c OllamaConfig) URL() string {
 	return fmt.Sprintf("http://%s:%d", c.Host, c.Port)
 }
 
+type LMStudioConfig struct {
+	Host           string
+	Port           int
+	EmbeddingModel string
+}
+
+func (c LMStudioConfig) EmbeddingURL() string {
+	return fmt.Sprintf("http://%s:%d", c.Host, c.Port)
+}
+
 func Load() *Config {
 	// Load .env file if exists (doesn't error if missing)
 	_ = godotenv.Load()
@@ -92,8 +103,8 @@ func Load() *Config {
 			Env:           envOr("APP_ENV", "development"),
 			APIURL:        envOr("API_URL", "http://localhost:8080"),
 			WsURL:         envOr("WS_URL", "ws://localhost:8080/ws"),
-			DefaultUserID:  envOr("DEFAULT_USER_ID", "default-user"),
-			JWTSecret:      envOr("JWT_SECRET", "change-me-in-production"),
+			DefaultUserID: envOr("DEFAULT_USER_ID", "default-user"),
+			JWTSecret:     envOr("JWT_SECRET", "change-me-in-production"),
 		},
 		Postgres: PostgresConfig{
 			Host:     envOr("POSTGRES_HOST", "postgres.database"),
@@ -126,6 +137,11 @@ func Load() *Config {
 			Port:           envIntOr("OLLAMA_PORT", 11434),
 			Model:          envOr("OLLAMA_MODEL", "gemma4:e4b"),
 			EmbeddingModel: envOr("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text"),
+		},
+		LMStudio: LMStudioConfig{
+			Host:           envOr("LM_STUDIO_HOST", "localhost"),
+			Port:           envIntOr("LM_STUDIO_PORT", 1234),
+			EmbeddingModel: envOr("LM_STUDIO_EMBEDDING_MODEL", "nomic-embed-text-v1.5@q8_0"),
 		},
 	}
 }
