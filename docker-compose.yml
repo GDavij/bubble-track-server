@@ -14,7 +14,8 @@
 #
 # CONNECTING FROM YOUR HOST (server runs locally, not in Docker):
 # --------------------------------------------------------------------
-# Update your .env file to use localhost instead of the internal hostnames:
+# When running the BubbleTrack server directly on your host machine,
+# use these .env values to connect to the Docker containers:
 #
 #   # PostgreSQL (matches POSTGRES_* below)
 #   POSTGRES_HOST=localhost
